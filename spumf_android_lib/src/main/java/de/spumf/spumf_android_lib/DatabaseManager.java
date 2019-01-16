@@ -25,6 +25,10 @@ import java.util.Map;
 
 import androidx.annotation.NonNull;
 
+/**
+ * Database Manager to manage the Firestore Database
+ * Interacts with Recall Activities
+ */
 public class DatabaseManager {
 
     public static final String DATABASE_DATES = "BoardGameDates";
@@ -44,11 +48,14 @@ public class DatabaseManager {
         auth = FirebaseAuth.getInstance();
     }
 
+    /**
+     * Checks wether the User is signed into the Firebase Authentication
+     * @return true if user is signed in
+     */
     public boolean signedIn(){
         FirebaseUser currentUser = auth.getCurrentUser();
         return currentUser != null;
     }
-
 
     public static DatabaseManager getInstance(){
         if(DatabaseManager.instance == null){
@@ -57,6 +64,17 @@ public class DatabaseManager {
         return DatabaseManager.instance;
     }
 
+    /**
+     * Publishes a Date to Firestore
+     * @param context
+     * @param title
+     * @param description
+     * @param date
+     * @param lt location of the date - Town
+     * @param ls location of the date - Street
+     * @param categories
+     * @param summary
+     */
     public void publishDate(final Context context, String title, String description, Date date, String lt, String ls, ArrayList<String> categories, String summary){
         Map<String, Object> data = new HashMap<>();
         data.put("Title", title);
@@ -80,6 +98,10 @@ public class DatabaseManager {
                 });
     }
 
+    /**
+     * Retrieves all Dates from the Database
+     * @param recall
+     */
     public void getDates(final RecallActivity recall){
         db.collection(DATABASE_DATES).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
@@ -98,6 +120,10 @@ public class DatabaseManager {
         });
     }
 
+    /**
+     * Retrieves all Categories from the Database
+     * @param recall
+     */
     public void getCategories(final RecallActivity recall){
         db.collection(DATABASE_CATEGORIES).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
@@ -116,6 +142,11 @@ public class DatabaseManager {
         });
     }
 
+    /**
+     * Published a Category to Firestore
+     * @param text
+     * @param recall
+     */
     public void publishCategory(String text, final RecallActivity recall) {
         Map<String, Object> data = new HashMap<>();
         data.put("Name",text);
@@ -134,6 +165,11 @@ public class DatabaseManager {
         });
     }
 
+    /**
+     * Deletes a Category and then Updates the Categories of the RecallActivity
+     * @param category
+     * @param recall
+     */
     public void deleteCategory(String category, final RecallActivity recall) {
         Query q = db.collection(DATABASE_CATEGORIES).whereEqualTo("Name", category);
         q.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -149,6 +185,12 @@ public class DatabaseManager {
         });
     }
 
+    /**
+     * Edits a Category by deleting the old one and creating a new one
+     * @param category
+     * @param s
+     * @param recall
+     */
     public void changeCategory(String category, String s, RecallActivity recall) {
         deleteCategory(category, recall);
         publishCategory(s, recall);
