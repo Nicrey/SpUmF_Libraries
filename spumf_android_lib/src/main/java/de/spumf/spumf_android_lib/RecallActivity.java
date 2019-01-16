@@ -18,9 +18,14 @@ import java.util.concurrent.Executor;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+/**
+ * RecallActivity => Every Activity should be Recall as it ensures good interactions
+ * with the Database Manager without Code Duplication
+ */
 public abstract class RecallActivity extends AppCompatActivity {
 
     protected DatabaseManager dm;
+    private boolean signInRequired = false;
     private final Integer SIGN_IN = 77;
 
     @Override
@@ -29,10 +34,18 @@ public abstract class RecallActivity extends AppCompatActivity {
         dm = DatabaseManager.getInstance();
     }
 
+    protected void onCreate(@Nullable Bundle savedInstanceState, boolean signInRequired) {
+        onCreate(savedInstanceState);
+        this.signInRequired = signInRequired;
+    }
+
+    /**
+     * Pops a sign in Form if the user has to be signed in and should be
+     */
     @Override
     protected void onStart() {
         super.onStart();
-        if(!dm.signedIn()){
+        if(signInRequired && !dm.signedIn()){
             List<AuthUI.IdpConfig> providers = Arrays.asList(new AuthUI.IdpConfig.EmailBuilder().build());
             startActivityForResult(AuthUI.getInstance()
                     .createSignInIntentBuilder()
@@ -41,6 +54,12 @@ public abstract class RecallActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Catches Firebase Authentication
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == SIGN_IN){
