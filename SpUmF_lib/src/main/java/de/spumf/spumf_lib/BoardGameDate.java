@@ -28,7 +28,7 @@ public class BoardGameDate {
     }
 
     /**
-     * Konstruktor für Erstellung eines BoardGameDates aus einem Datenbankeintrag
+     * Konstruktor für die Erstellung eines BoardGameDates aus einem Datenbankeintrag
      * @param databaseEntry Der zugehörige Datenbankeintrag
      */
     public BoardGameDate(Map<String, Object> databaseEntry){
