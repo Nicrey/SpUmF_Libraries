@@ -1,0 +1,1 @@
+include ':libs', ':spumf_android_lib', ':SpUmF_lib'
