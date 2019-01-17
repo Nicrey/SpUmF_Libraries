@@ -34,6 +34,7 @@ public class DatabaseManager {
     public static final String DATABASE_DATES = "BoardGameDates";
     public static final String DATABASE_CATEGORIES = "Categories";
     public static final String DATABASE_OLD_DATES = "OldBoardGameDates";
+    public static final String DATABASE_ADDRESS_SEPARATOR = " -> ";
 
     private static DatabaseManager instance;
     private FirebaseAuth auth;
@@ -46,6 +47,7 @@ public class DatabaseManager {
                 .build();
         db.setFirestoreSettings(settings);
         auth = FirebaseAuth.getInstance();
+
     }
 
     /**
@@ -73,14 +75,20 @@ public class DatabaseManager {
      * @param lt location of the date - Town
      * @param ls location of the date - Street
      * @param categories
-     * @param summary
      */
-    public void publishDate(final Context context, String title, String description, Date date, String lt, String ls, ArrayList<String> categories, String summary){
+    public void publishDate(final Context context, String title, String description, Date date, String lt, String ls, ArrayList<String> categories){
         Map<String, Object> data = new HashMap<>();
         data.put("Title", title);
         data.put("Date", date);
         data.put("Categories", categories);
-        data.put("Address", lt + " " + ls);
+        //Input säubern um unschöne Trennungen später zu vermeiden
+        if(ls.contains(DATABASE_ADDRESS_SEPARATOR)){
+            ls = ls.replace(DATABASE_ADDRESS_SEPARATOR, "");
+        }
+        if(lt.contains(DATABASE_ADDRESS_SEPARATOR)){
+            lt = lt.replace(DATABASE_ADDRESS_SEPARATOR , "");
+        }
+        data.put("Address", lt + DATABASE_ADDRESS_SEPARATOR  + ls);
         data.put("Description", description);
         db.collection(DATABASE_DATES).add(data)
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
@@ -105,11 +113,13 @@ public class DatabaseManager {
     public void getDates(final RecallActivity recall){
         db.collection(DATABASE_DATES).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
-            public void onComplete(Task<QuerySnapshot> task) {
+            public void onComplete( Task<QuerySnapshot> task) {
                 ArrayList<Map<String, Object>> dates = new ArrayList<>();
                 if(task.isSuccessful()){
                     for (QueryDocumentSnapshot document: task.getResult()){
-                        dates.add(document.getData());
+                        Map<String, Object> data = document.getData();
+                        data.put(BoardGameDate.DATE_FIELD_ID,document.getId());
+                        dates.add(data);
                         Log.d("DatabaseManager", "yy - Found Date: " + document.getData().get("Title"));
                     }
                 }else{
@@ -194,5 +204,77 @@ public class DatabaseManager {
     public void changeCategory(String category, String s, RecallActivity recall) {
         deleteCategory(category, recall);
         publishCategory(s, recall);
+    }
+
+    /**
+     * Deletes a Date and moves a backup to OldBoardGameDates Firestore
+     * @param date
+     * @param recall
+     */
+    public void deleteDate(final BoardGameDate date, final RecallActivity recall) {
+        Log.w("DatabaseManageR", "yy- " + date.getId());
+        //Move to Old Dates
+        db.collection(DATABASE_OLD_DATES).add(date.toData())
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        //Delete Date from Real Table
+                        db.collection(DATABASE_DATES).document(date.getId()).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Toast.makeText(recall.getApplicationContext(), "Erfolgreich Gelöscht.", Toast.LENGTH_LONG).show();
+
+                                getDates(recall);
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(recall.getApplicationContext(), "Fehler beim Löschen", Toast.LENGTH_LONG).show();
+                                Log.w("DatabaseManager", "Error deleting date", e);
+                            }
+                        });
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(recall.getApplicationContext(), "Fehler beim Löschen/Backupen", Toast.LENGTH_LONG).show();
+                        Log.w("DatabaseManager", "Error moving date", e);
+                    }
+                });
+
+
+    }
+
+    /**
+     * Edits a date to include the new Values
+     * @param c
+     * @param d The old date (mainly for id)
+     * @param title
+     * @param description
+     * @param date
+     * @param lt
+     * @param ls
+     * @param cats
+     */
+    public void editDate(final Context c, BoardGameDate d, String title, String description, Date date, String lt, String ls, ArrayList<String> cats) {
+        DocumentReference doc = db.collection(DATABASE_DATES).document(d.getId());
+        doc.update(BoardGameDate.DATE_FIELD_TITLE, title,
+                BoardGameDate.DATE_FIELD_DESCRIPTION,description,
+                BoardGameDate.DATE_FIELD_DATE, date,
+                BoardGameDate.DATE_FIELD_ADDRESS, lt + DATABASE_ADDRESS_SEPARATOR + ls,
+                BoardGameDate.DATE_FIELD_CATEGORIES, cats).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Toast.makeText(c, "Editieren erfolgreich", Toast.LENGTH_LONG).show();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(c, "Editieren gescheitert", Toast.LENGTH_LONG).show();
+                Log.w("Database Manager", "yy- Error editing BoardGameDate", e);
+            }
+        });
+
     }
 }
