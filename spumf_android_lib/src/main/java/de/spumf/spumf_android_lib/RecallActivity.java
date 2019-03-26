@@ -1,6 +1,5 @@
 package de.spumf.spumf_android_lib;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -13,7 +12,6 @@ import com.google.firebase.auth.FirebaseUser;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;

@@ -12,8 +12,11 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.firestore.MetadataChanges;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -24,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * Database Manager to manage the Firestore Database
@@ -44,6 +48,7 @@ public class DatabaseManager {
         db = FirebaseFirestore.getInstance();
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
                 .setTimestampsInSnapshotsEnabled(true)
+                .setPersistenceEnabled(true)
                 .build();
         db.setFirestoreSettings(settings);
         auth = FirebaseAuth.getInstance();
@@ -111,19 +116,18 @@ public class DatabaseManager {
      * @param recall
      */
     public void getDates(final RecallActivity recall){
-        db.collection(DATABASE_DATES).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+        db.collection(DATABASE_DATES).addSnapshotListener(MetadataChanges.EXCLUDE,new EventListener<QuerySnapshot>() {
             @Override
-            public void onComplete( Task<QuerySnapshot> task) {
+            public void onEvent(@Nullable QuerySnapshot snapshot, @Nullable FirebaseFirestoreException e) {
                 ArrayList<Map<String, Object>> dates = new ArrayList<>();
-                if(task.isSuccessful()){
-                    for (QueryDocumentSnapshot document: task.getResult()){
-                        Map<String, Object> data = document.getData();
-                        data.put(BoardGameDate.DATE_FIELD_ID,document.getId());
-                        dates.add(data);
-                        Log.d("DatabaseManager", "yy - Found Date: " + document.getData().get("Title"));
-                    }
-                }else{
-                    Log.w("DatabaseManager", "yy - Error getting Dates", task.getException());
+                if( e!= null){
+                    Log.w("DatabaseManager", "yy - Firebase Listen Error (Dates)");
+                }
+                for (QueryDocumentSnapshot document: snapshot){
+                    Map<String, Object> data = document.getData();
+                    data.put(BoardGameDate.DATE_FIELD_ID,document.getId());
+                    dates.add(data);
+                    Log.d("DatabaseManager", "yy - Found Date: " + document.getData().get("Title"));
                 }
                 recall.update(dates, DATABASE_DATES);
             }
