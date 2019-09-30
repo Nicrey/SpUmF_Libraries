@@ -23,7 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public abstract class RecallActivity extends AppCompatActivity {
 
     protected DatabaseManager dm;
-    private boolean signInRequired = false;
+    protected boolean signInRequired = false;
     private final Integer SIGN_IN = 77;
 
     @Override
@@ -43,6 +43,10 @@ public abstract class RecallActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        signIn();
+    }
+
+    protected void signIn(){
         if(signInRequired && !dm.signedIn()){
             List<AuthUI.IdpConfig> providers = Arrays.asList(new AuthUI.IdpConfig.EmailBuilder().build());
             startActivityForResult(AuthUI.getInstance()
@@ -70,7 +74,7 @@ public abstract class RecallActivity extends AppCompatActivity {
         }
     }
 
-    protected void signOut(){
+   public void signOut(){
         dm.signOut();
     }
 
