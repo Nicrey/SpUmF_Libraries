@@ -70,6 +70,10 @@ public abstract class RecallActivity extends AppCompatActivity {
         }
     }
 
+    protected void signOut(){
+        dm.signOut();
+    }
+
     public abstract void update(ArrayList<?> values, String name);
 
     public void signInResult(boolean success, FirebaseUser user){

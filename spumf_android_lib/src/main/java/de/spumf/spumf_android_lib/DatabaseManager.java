@@ -64,6 +64,10 @@ public class DatabaseManager {
         return currentUser != null;
     }
 
+    public void signOut(){
+        auth.signOut();
+    }
+
     public static DatabaseManager getInstance(){
         if(DatabaseManager.instance == null){
             DatabaseManager.instance = new DatabaseManager();
