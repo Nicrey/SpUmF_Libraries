@@ -43,7 +43,7 @@ public abstract class RecallActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if(signInRequired && !dm.signedIn()){
+        if(signInRequired){
             List<AuthUI.IdpConfig> providers = Arrays.asList(new AuthUI.IdpConfig.EmailBuilder().build());
             startActivityForResult(AuthUI.getInstance()
                     .createSignInIntentBuilder()
