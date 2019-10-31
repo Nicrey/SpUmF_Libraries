@@ -5,6 +5,7 @@ import android.content.Intent;
 
 import com.google.firebase.Timestamp;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,7 +17,7 @@ import java.util.Map;
 /*
     Modelliert einen Termin
  */
-public class BoardGameDate {
+public class BoardGameDate implements Serializable {
     public static final String DATE_FIELD_ID = "ID";
     public static final String DATE_FIELD_TITLE = "Title";
     public static final String DATE_FIELD_DESCRIPTION = "Description";
