@@ -23,7 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public abstract class RecallActivity extends AppCompatActivity {
 
     protected DatabaseManager dm;
-    private boolean signInRequired = false;
+    protected boolean signInRequired = false;
     private final Integer SIGN_IN = 77;
 
     @Override
@@ -68,6 +68,10 @@ public abstract class RecallActivity extends AppCompatActivity {
                 signInResult(false, null);
             }
         }
+    }
+
+   public void signOut(){
+        dm.signOut();
     }
 
     public abstract void update(ArrayList<?> values, String name);
